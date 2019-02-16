@@ -1,0 +1,7 @@
+*.mdf
+*.cnf
+*.o
+*.lgf
+sim02
+.vscode
+.main.c.swp

@@ -4,9 +4,10 @@ CFLAGS = -Wall -std=c99 -pedantic -c $(DEBUG) -pthread
 LFLAGS = -Wall -std=c99 -pedantic $(DEBUG) -pthread -o
 PROG_O_DEPS = main.o dataStructures.o errors.o fileUtils.o strUtils.o mathUtils.o
 PROG_H_DEPS = dataStructures.h errors.h fileUtils.h errors.h strUtils.h booleans.h mathUtils.h
+SIM_NAME = sim02
 
 sim0x: $(PROG_O_DEPS) $(PROG_H_DEPS)
-	$(CC) $(LFLAGS) sim01 $(PROG_O_DEPS)
+	$(CC) $(LFLAGS) $(SIM_NAME) $(PROG_O_DEPS)
 
 main.o: booleans.h dataStructures.h errors.h fileUtils.h strUtils.h dataStructures.o errors.o fileUtils.o strUtils.o
 	$(CC) $(CFLAGS) main.c
@@ -27,4 +28,4 @@ strUtils.o: strUtils.c strUtils.h booleans.h mathUtils.h errors.h
 	$(CC) $(CFLAGS) strUtils.c
 
 clean:
-	\rm *.o sim01
+	\rm *.o $(SIM_NAME)
