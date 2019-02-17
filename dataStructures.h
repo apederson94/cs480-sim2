@@ -1,3 +1,5 @@
+#include <time.h>
+
 #ifndef DATA_STRUCTURES
 #define DATA_STRUCTURES
 
@@ -28,6 +30,23 @@ struct simAction
     struct simAction *next;
 };
 
+//stores all operations in a linked list
+struct loggedOperation
+{
+    clock_t executedAt;
+    int processNum;
+    char *description;
+    struct loggedOperation *next;
+};
+
+//stores all information associated with a process
+struct PCB
+{
+    int processNum;
+    char state[8];
+    struct simAction *next;
+};
+
 //FREES ALL MEMORY ASSOCIATED WITH simActionS
 void freeActions(struct simAction* head);
 
@@ -42,5 +61,16 @@ void printConfigValues(struct configValues *src, char *fileName);
 
 //TURNS A COMMAND STRING INTO AN ACTION
 int setActionData(char *command, struct simAction *action);
+
+//RETURNS THE NUMBER OF APPLICATIONS TO BE RUN IN A SIM ACTION LIST
+int countApplications(struct simAction *head);
+
+/*verifies that:
+    * system opens at start and ends at end and both only occur once
+    * applications start and end once:
+        * application must close before opening another one
+        * application must open before closing
+    * returns ERROR_CODE or 0 if successful*/
+int verifySimActions(struct simAction *head);
 
 #endif

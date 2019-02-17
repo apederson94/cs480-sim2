@@ -20,29 +20,6 @@ void freeActions(struct simAction* head)
     }
 }
 
-//PRINTS ALL RELEVANT simAction INFORMATION
-//CURRENTLY DEPRECATED
-/* void printSimAction(struct simAction *src, char *logFile, char *logTo) 
-{
-    if (strCmp(logTo, "Monitor")
-    || strCmp(logTo, "Both")) 
-    {
-        printf("Op code letter: %c\n", src->commandLetter);
-        printf("Op code name  : %s\n", src->operationString);
-        printf("Op code value : %d\n", src->assocVal);
-    }
-
-    if (strCmp(logTo, "File")
-    || strCmp(logTo, "Both"))
-    {
-        file =
-        fprintf("Op code letter: %c\n", src->commandLetter);
-        fprintf("Op code name  : %s\n", src->operationString);
-        fprintf("Op code value : %d\n", src->assocVal);
-    }
-    
-} */
-
 //PRINTS ALL ALL RELEVANT simAction INFORMATION FOR ALL simActionS
 void printSimActions(struct simAction *head, struct configValues *settings) 
 {
@@ -220,5 +197,119 @@ int setActionData(char *command, struct simAction *action)
         return NEGATIVE_MDF_VALUE_ERROR;
     }
     action->assocVal = value;
+    return 0;
+}
+
+//RETURNS THE NUMBER OF APPLICATIONS TO BE RUN IN A SIM ACTION LIST
+int countApplications(struct simAction *head)
+{
+    int count = 0;
+    struct simAction *tmp = head;
+
+    while (tmp->next)
+    {
+        if (tmp->commandLetter == 'A' && strCmp(tmp->operationString, "start"))
+        {
+            count++;
+        }
+    }
+
+    free(tmp);
+    return count;
+}
+
+/*verifies that:
+    * system:
+        * system starts first
+        * system starts once
+        * system end is the final call
+    * application:
+        * application must start before ending
+        * application must end before starting again
+    * returns ERROR_CODE or 0 if successful*/
+int verifySimActions(struct simAction *head)
+{
+    bool osStart = FALSE;
+    bool appStart = FALSE;
+    bool osEnd = FALSE;
+    bool first = TRUE;
+    struct simAction *tmp = head;
+    char *opString;
+    char cmd;
+
+    while (tmp->next)
+    {
+        cmd = tmp->commandLetter;
+        opString = tmp->operationString;
+
+        if (first)
+        {
+            //first command must be start OS
+            if (cmd == 'S'
+            && strCmp(opString, "start"))
+            {
+                osStart = TRUE;
+                first = FALSE;
+            }
+            else
+            {
+                return OS_START_ERROR;
+            }
+        }
+        else
+        {
+            //OS may only start once
+            if (cmd == 'S'
+            && strCmp(opString, "start"))
+            {
+                return MULTIPLE_OS_START_ERROR;
+            }
+            else if (!osEnd)
+            {
+                if (cmd == 'A')
+                {
+                    if (appStart)
+                    {
+                        //starting app while another has not ended results in error
+                        if (strCmp(opString, "start"))
+                        {
+                            return CONCURRENT_APP_START_ERROR;
+                        }
+                        else
+                        {
+                            appStart = FALSE;
+                        }
+                    }
+                    else
+                    {
+                        if (strCmp(opString, "start"))
+                        {
+                            appStart = TRUE;
+                        }
+                        //if app hasn't started and end is called, result is error
+                        else
+                        {
+                            return APP_END_TIME_ERROR;
+                        }
+                    }
+                }
+                else if (cmd == 'S')
+                {
+                    if (strCmp(opString, "end"))
+                    {
+                        osEnd = TRUE;
+                    }
+                }
+            }
+            //anything coming after OS end call results in error
+            else
+            {
+                return OS_END_ERROR;
+            }
+            
+        }
+    }
+
+    free(tmp);
     return 0;
 }
