@@ -4,7 +4,16 @@
 #ifndef LOGGER
 #define LOGGER
 
-void logOp(struct loggedOperation *logList, clock_t execAt, int pNum, char *description);
+//stores all operations in a linked list
+struct loggedOperation
+{
+    char *description;
+    struct loggedOperation *next;
+};
+
+void appendToLog(struct loggedOperation *logList, char *description);
+
+void appendSettingsToLog(struct loggedOperation *logList, struct configValues *settings);
 
 int createLogFile(char *fileName, struct loggedOperation *head);
 

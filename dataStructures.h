@@ -30,15 +30,6 @@ struct simAction
     struct simAction *next;
 };
 
-//stores all operations in a linked list
-struct loggedOperation
-{
-    clock_t executedAt;
-    int processNum;
-    char *description;
-    struct loggedOperation *next;
-};
-
 //stores all information associated with a process
 struct PCB
 {

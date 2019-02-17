@@ -47,7 +47,7 @@ int main(int argc, char const *argv[]) {
     currentTime = execTime(startTime);
     sprintf(logDescription, "[%lf]     Begin %s upload...\n\n", currentTime, fileName);
     printf(logDescription);
-    loggedOps(logList, currentTime, 0, logDescription);
+    appendToLog(logList, logDescription);
 
 
 
@@ -58,43 +58,89 @@ int main(int argc, char const *argv[]) {
     //ERROR CHECKING FOR CONFIG FILE READING
     if (cfgVal > 0) 
     {
-        if (logToFile)
+        if (settings->logTo)
         {
-            createLogFile(settings->logPath, logList);
+            if (strCmp(settings->logTo, "Both")
+            || strCmp(settings->logTo, "File"))
+            {
+                createLogFile(settings->logPath, logList);
+            }
         }
         displayError(cfgVal);
         return 1;
+    }
+
+    if (strCmp(settings->logTo, "Both")
+    || strCmp(settings->logTo, "File"))
+    {
+        logToFile = TRUE;
+    }
+    else if (strCmp(settings->logTo, "Both")
+    || strCmp(settings->logTo, "Monitor"))
+    {
+        logToMon = TRUE;
     }
 
     //PRINTING SUCCESS MESSAGE
     currentTime = execTime(startTime);
     sprintf(logDescription, "[%lf]     %s uploaded successfully!\n\n", currentTime, fileName);
     printf(logDescription);
-    logOp(logList, currentTime, 0, logDescription);
+    appendToLog(logList, logDescription);
 
     //PRINTING CONFIG FILE VALUES
-    printConfigValues(settings, fileName);
-
+    if (logToMon)
+    {
+        printConfigValues(settings, fileName);
+    }
+    
+    if (logToFile)
+    {
+        appendSettingsToLog(logList, settings);
+    }
+    
     //BEGINNING MDF FILE UPLOAD
-    printf("Begin %s file upload...\n\n", settings->mdfPath);
-    //printf("Meta-Data File Display\n======================\n\n");
-
+    currentTime = execTime(startTime);
+    sprintf(logDescription, "[%lf]     Begin %s file upload...\n\n", currentTime, settings->mdfPath);
+    printf(logDescription);
+    appendToLog(logList, logDescription);
 	
     mdfVal = readMetaDataFile(settings->mdfPath, actionsHead);
 	
     //ERROR CHECKING FOR META-DATA FILE READING
     if (mdfVal > 0) 
     {
+        if (logToFile)
+        {
+            createLogFile(settings->logPath, logList);
+        }
         displayError(mdfVal);
+    }
+
+    if (logToMon)
+    {
+        printSimActions(actionsHead, settings);
+    }
+
+    if (logToFile)
+    {
+        appendSimActionsToLog(logList, actionsHead);
     }
     
     //PRINTING SUCCESS MESSAGE
-    printf("%s uploaded succesfully!\n\n", settings->mdfPath);
+    currentTime = execTime(startTime);
+    sprintf(logDescription, "[%lf]     %s uploaded succesfully!\n\n", currentTime, settings->mdfPath);
     
     //PRINT TO LOGIC
-    printSimActions(actionsHead, settings);
+    if (logToMon)
+    {
+        printSimActions(actionsHead, settings);
+    }
 
-
+    if (logToFile)
+    {
+        appendSimActionsToLog(logList, actionsHead);
+    }
+    
 
     //FREEING DATA STRUCTS USED TO STORE READ INFORMATION
     freeActions(actionsHead);
