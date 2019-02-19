@@ -7,6 +7,7 @@
 #include "dataStructures.h"
 #include "errors.h"
 #include "logger.h"
+#include "simulator.h"
 
 //TODO: LOG FILE PRINTING BEFORE CLOSING FILE ALL AT ONCE INCLUDING TIMES OF PRINTING.
     //MAYBE USE A LINKED LIST FOR THIS? WOULD BE AN EASY WAY TO STORE DYNAMIC AMOUNT OF INFORMATION
@@ -20,13 +21,16 @@ int main(int argc, char const *argv[]) {
     struct configValues *settings = (struct configValues*) malloc(sizeof(struct configValues));
     struct simAction *actionsHead = (struct simAction*) malloc(sizeof(struct simAction));
     struct loggedOperation *logList = (struct loggedOperation*) malloc(sizeof(struct loggedOperation));
-    struct PCB *pcbList;
-    int cfgVal, mdfVal;
-    clock_t startTime, currentTime;
+    struct PCB **pcbList;
+    int cfgVal, mdfVal, verificationVal, numApps, simVal;
+    struct timespec startTime;
+    double runTime;
     bool logToFile = FALSE;
     bool logToMon = FALSE;
 
-    startTime = clock();
+    logDescription = malloc(sizeof(char) * 100);
+
+    clock_gettime(NULL, &startTime);
     
     //CORRECT NUMBER OF INPUTS CHECK
     if (argc != 2) 
@@ -44,9 +48,9 @@ int main(int argc, char const *argv[]) {
     }
 
     //STARTING FILE UPLOAD PROCESS
-    currentTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     Begin %s upload...\n\n", currentTime, fileName);
-    printf(logDescription);
+    runTime = execTime(startTime);
+    sprintf(logDescription, "[%ld]     Begin %s upload...\n\n", runTime, fileName);
+    printf("%s", logDescription);
     appendToLog(logList, logDescription);
 
 
@@ -82,9 +86,9 @@ int main(int argc, char const *argv[]) {
     }
 
     //PRINTING SUCCESS MESSAGE
-    currentTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     %s uploaded successfully!\n\n", currentTime, fileName);
-    printf(logDescription);
+    runTime = execTime(startTime);
+    sprintf(logDescription, "[%lf]     %s uploaded successfully!\n\n", runTime, fileName);
+    printf("%s", logDescription);
     appendToLog(logList, logDescription);
 
     //PRINTING CONFIG FILE VALUES
@@ -99,9 +103,9 @@ int main(int argc, char const *argv[]) {
     }
     
     //BEGINNING MDF FILE UPLOAD
-    currentTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     Begin %s file upload...\n\n", currentTime, settings->mdfPath);
-    printf(logDescription);
+    runTime = execTime(startTime);
+    sprintf(logDescription, "[%lf]     Begin %s file upload...\n\n", runTime, settings->mdfPath);
+    printf("%s", logDescription);
     appendToLog(logList, logDescription);
 	
     mdfVal = readMetaDataFile(settings->mdfPath, actionsHead);
@@ -127,8 +131,8 @@ int main(int argc, char const *argv[]) {
     }
     
     //PRINTING SUCCESS MESSAGE
-    currentTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     %s uploaded succesfully!\n\n", currentTime, settings->mdfPath);
+    runTime = execTime(startTime);
+    sprintf(logDescription, "[%lf]     %s uploaded succesfully!\n\n", runTime, settings->mdfPath);
     
     //PRINT TO LOGIC
     if (logToMon)
@@ -140,7 +144,28 @@ int main(int argc, char const *argv[]) {
     {
         appendSimActionsToLog(logList, actionsHead);
     }
-    
+
+    verificationVal = verifySimActions(actionsHead);
+
+    if (verificationVal > 0)
+    {
+        if (logToFile)
+        {
+            createLogFile(settings->logPath, logList);
+        }
+
+        displayError(verificationVal);
+    }
+
+    numApps = countApplications(actionsHead);
+
+    pcbList = (struct PCB **) malloc(sizeof(struct PCB) * numApps);
+
+    createPCBList(pcbList, actionsHead);
+
+    simVal = simulate(pcbList, settings);
+
+    printf("%d\n", simVal);
 
     //FREEING DATA STRUCTS USED TO STORE READ INFORMATION
     freeActions(actionsHead);

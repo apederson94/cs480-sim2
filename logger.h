@@ -15,10 +15,12 @@ void appendToLog(struct loggedOperation *logList, char *description);
 
 void appendSettingsToLog(struct loggedOperation *logList, struct configValues *settings);
 
+void appendSimActionsToLog(struct loggedOperation *logList, struct simAction *head);
+
 int createLogFile(char *fileName, struct loggedOperation *head);
 
 void freeLoggedOps(struct loggedOperation *head);
 
-double execTime(clock_t start);
+double execTime(struct timespec start);
 
 #endif

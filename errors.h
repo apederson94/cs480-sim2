@@ -1,5 +1,5 @@
-#ifndef ERRORS
-#define ERRORS
+#ifndef SIM_ERRORS
+#define SIM_ERRORS
 
 enum 
 {

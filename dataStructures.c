@@ -191,19 +191,19 @@ int verifySimActions(struct simAction *head)
 
         if (first)
         {
+            first = FALSE;
             //first command must be start OS
             if (cmd == 'S'
             && strCmp(opString, "start"))
             {
                 osStart = TRUE;
-                first = FALSE;
             }
             else
             {
                 return OS_START_ERROR;
             }
         }
-        else
+        else if (osStart)
         {
             //OS may only start once
             if (cmd == 'S'
@@ -255,8 +255,38 @@ int verifySimActions(struct simAction *head)
             }
             
         }
+        else if (!osStart)
+        {
+            return OS_START_ERROR;
+        }
     }
 
     free(tmp);
     return 0;
+}
+
+//constructs a list of PCBs based upon started applications
+void createPCBList(struct PCB **pcbList, struct simAction *head)
+{
+    struct simAction *actionIter = (struct simAction *) malloc(sizeof(struct simAction));
+    struct PCB *controlBlock = (struct PCB *) malloc(sizeof(struct PCB));
+    int processNum = 1;
+    char *new = "new";
+
+    actionIter = head;
+
+    while(actionIter->next)
+    {
+        if (actionIter->commandLetter == 'A'
+        && strCmp(actionIter->operationString, "start"))
+        {
+            controlBlock->processNum = processNum;
+            controlBlock->state = new;
+            controlBlock->pc = actionIter;
+
+            pcbList[processNum-1] = controlBlock;
+
+            processNum++;
+        }
+    }
 }

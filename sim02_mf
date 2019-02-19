@@ -2,17 +2,17 @@ CC = gcc
 DEBUG = -g
 CFLAGS = -Wall -std=c99 -pedantic -c $(DEBUG) -pthread
 LFLAGS = -Wall -std=c99 -pedantic $(DEBUG) -pthread -o
-PROG_O_DEPS = main.o dataStructures.o errors.o fileUtils.o strUtils.o mathUtils.o
-PROG_H_DEPS = dataStructures.h errors.h fileUtils.h errors.h strUtils.h booleans.h mathUtils.h
+PROG_O_DEPS = main.o dataStructures.o errors.o fileUtils.o strUtils.o mathUtils.o simulator.o logger.o
+PROG_H_DEPS = dataStructures.h errors.h fileUtils.h errors.h strUtils.h booleans.h mathUtils.h errors.h simulator.h logger.h
 SIM_NAME = sim02
 
 sim0x: $(PROG_O_DEPS) $(PROG_H_DEPS)
 	$(CC) $(LFLAGS) $(SIM_NAME) $(PROG_O_DEPS)
 
-main.o: booleans.h dataStructures.h errors.h fileUtils.h strUtils.h dataStructures.o errors.o fileUtils.o strUtils.o
+main.o: main.c booleans.h dataStructures.h errors.h fileUtils.h strUtils.h simulator.h logger.h 
 	$(CC) $(CFLAGS) main.c
 
-dataStructures.o: dataStructures.h booleans.h errors.h errors.o strUtils.h strUtils.o
+dataStructures.o: dataStructures.h booleans.h errors.h strUtils.h
 	$(CC) $(CFLAGS) dataStructures.c
 
 errors.o: errors.c errors.h
@@ -26,6 +26,12 @@ mathUtils.o: mathUtils.c mathUtils.h
 
 strUtils.o: strUtils.c strUtils.h booleans.h mathUtils.h errors.h
 	$(CC) $(CFLAGS) strUtils.c
+
+simulator.o: simulator.c simulator.h dataStructures.h
+	$(CC) $(CFLAGS) simulator.c
+
+logger.o: logger.c logger.h dataStructures.h errors.h strUtils.h
+	$(CC) $(CFLAGS) logger.c
 
 clean:
 	\rm *.o $(SIM_NAME)

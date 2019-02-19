@@ -3,6 +3,6 @@
 #ifndef SIMULATOR
 #define SIMULATOR
 
-int simulate(struct simAction *head, struct configValues *settings);
+int simulate(struct PCB **pcbList, struct configValues *settings);
 
 #endif

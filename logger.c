@@ -1,7 +1,10 @@
 #include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "logger.h"
 #include "errors.h"
+#include "strUtils.h"
+#include "dataStructures.h"
 
 void appendToLog(struct loggedOperation *logList, char *description)
 {
@@ -26,7 +29,16 @@ void appendToLog(struct loggedOperation *logList, char *description)
 void appendSettingsToLog(struct loggedOperation *logList, struct configValues *settings)
 {
     char *version, *program, *cpuSched, *quantum, *memAvail, *cpuCycle, *ioCycle, *logTo, *logPath;
-    char *all[9];
+    version = malloc(sizeof(settings->ver) * sizeof(char));
+    program = malloc(strLen(settings->mdfPath) * sizeof(char));
+    cpuSched = malloc(strLen(settings->cpuSched) * sizeof(char));
+    quantum = malloc(sizeof(settings->quantumTime) * sizeof(char));
+    memAvail = malloc(sizeof(settings->memoryAvailable) * sizeof(char));
+    cpuCycle = malloc(sizeof(settings->cpuCycleTime) * sizeof(char));
+    ioCycle = malloc(sizeof(settings->ioCycleTime) * sizeof(char));
+    logTo = malloc(strLen(settings->logTo) * sizeof(char));
+    logPath = malloc(strLen(settings->logPath) * sizeof(char));
+    char *all[9] = {version, program, cpuSched, quantum, memAvail, cpuCycle, ioCycle, logTo, logPath};
     int pos;
 
     sprintf(version, "Version                : %f\n", settings->ver);
@@ -42,6 +54,7 @@ void appendSettingsToLog(struct loggedOperation *logList, struct configValues *s
     for (pos = 0; pos < 9; pos++)
     {
         appendToLog(logList, all[pos]);
+        free(all[pos]);
     }
 }
 
@@ -49,9 +62,12 @@ void appendSimActionsToLog(struct loggedOperation *logList, struct simAction *he
 {
     struct simAction *tmp = head;
     char *cmd, *opString, *assocVal;
+    cmd = malloc(sizeof(char));
     
     while (tmp->next)
     {
+        opString = malloc(sizeof(char) * strLen(tmp->operationString));
+        assocVal = malloc(sizeof(char) * sizeof(tmp->assocVal));
         sprintf(cmd, "Op code letter: %c\n", tmp->commandLetter);
         sprintf(opString, "Op code name  : %s\n", tmp->operationString);
         sprintf(assocVal, "Op code value : %d\n\n", tmp->assocVal);
@@ -59,15 +75,18 @@ void appendSimActionsToLog(struct loggedOperation *logList, struct simAction *he
         appendToLog(logList, cmd);
         appendToLog(logList, opString);
         appendToLog(logList, assocVal);
+        free(opString);
+        free(assocVal);
     }
 
+    free(cmd);
     free(tmp);
 }
 
 int createLogFile(char *fileName, struct loggedOperation *head)
 {
     struct loggedOperation *listIter = (struct loggedOperation *) malloc(sizeof(struct loggedOperation));
-    FILE *logFile = fopen(fileName, 'w');
+    FILE *logFile = fopen(fileName, "w");
 
     if (!logFile)
     {
@@ -78,7 +97,7 @@ int createLogFile(char *fileName, struct loggedOperation *head)
 
     while (listIter->next)
     {
-        fprintf(logFile, listIter->description);
+        fputs(listIter->description, logFile);
     }
 
     free(listIter);
@@ -98,7 +117,9 @@ void freeLoggedOps(struct loggedOperation *head)
     }
 }
 
-double execTime(clock_t start)
+double execTime(struct timespec start)
 {
-    return clock() - start;
+    struct timespec end;
+    clock_gettime(NULL, &end);
+    return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
 }

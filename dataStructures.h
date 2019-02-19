@@ -1,5 +1,3 @@
-#include <time.h>
-
 #ifndef DATA_STRUCTURES
 #define DATA_STRUCTURES
 
@@ -34,15 +32,15 @@ struct simAction
 struct PCB
 {
     int processNum;
-    char state[8];
-    struct simAction *next;
+    char *state;
+    struct simAction *pc;
 };
+
+//creates a list of pcbs
+void createPCBList(struct PCB *pcbList[], struct simAction *head);
 
 //FREES ALL MEMORY ASSOCIATED WITH simActionS
 void freeActions(struct simAction* head);
-
-//PRINTS ALL RELEVANT simAction INFORMATION
-//void printSimAction(struct simAction *src);
 
 //PRINTS ALL ALL RELEVANT simAction INFORMATION FOR ALL simActionS
 void printSimActions(struct simAction *head, struct configValues *settings);
