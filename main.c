@@ -1,37 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include "booleans.h"
-#include "strUtils.h"
-#include "fileUtils.h"
 #include "dataStructures.h"
 #include "errors.h"
+#include "fileUtils.h"
 #include "logger.h"
 #include "simulator.h"
-
-//TODO: LOG FILE PRINTING BEFORE CLOSING FILE ALL AT ONCE INCLUDING TIMES OF PRINTING.
-    //MAYBE USE A LINKED LIST FOR THIS? WOULD BE AN EASY WAY TO STORE DYNAMIC AMOUNT OF INFORMATION
+#include "strUtils.h"
+#include "timer.h"
 
 int main(int argc, char const *argv[]) {
 
     //VARIABLE DECLARATIONS
     char *fileExt;
     char *fileName = (char*) argv[1];
-    char *logDescription;
     struct configValues *settings = (struct configValues*) malloc(sizeof(struct configValues));
     struct simAction *actionsHead = (struct simAction*) malloc(sizeof(struct simAction));
-    struct loggedOperation *logList = (struct loggedOperation*) malloc(sizeof(struct loggedOperation));
-    struct PCB **pcbList;
-    int cfgVal, mdfVal, verificationVal, numApps, simVal;
-    struct timespec startTime;
-    double runTime;
+    struct logEntry *logList = (struct logEntry*) malloc(sizeof(struct logEntry));
+    int cfgVal, mdfVal, verificationVal, simVal;
     bool logToFile = FALSE;
     bool logToMon = FALSE;
 
-    logDescription = malloc(sizeof(char) * 100);
+    printf("SIMULATOR PROGRAM\n===================\n\n");
 
-    clock_gettime(NULL, &startTime);
-    
     //CORRECT NUMBER OF INPUTS CHECK
     if (argc != 2) 
     {
@@ -48,13 +40,7 @@ int main(int argc, char const *argv[]) {
     }
 
     //STARTING FILE UPLOAD PROCESS
-    runTime = execTime(startTime);
-    sprintf(logDescription, "[%ld]     Begin %s upload...\n\n", runTime, fileName);
-    printf("%s", logDescription);
-    appendToLog(logList, logDescription);
-
-
-
+    printf("Begin %s upload...\n\n", fileName);
 
 	//READ IN CONFIG FILE VALUES
     cfgVal = readConfigFile(fileName, settings);
@@ -79,17 +65,15 @@ int main(int argc, char const *argv[]) {
     {
         logToFile = TRUE;
     }
-    else if (strCmp(settings->logTo, "Both")
+    
+    if (strCmp(settings->logTo, "Both")
     || strCmp(settings->logTo, "Monitor"))
     {
         logToMon = TRUE;
     }
 
     //PRINTING SUCCESS MESSAGE
-    runTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     %s uploaded successfully!\n\n", runTime, fileName);
-    printf("%s", logDescription);
-    appendToLog(logList, logDescription);
+    printf("%s uploaded successfully!\n\n", fileName);
 
     //PRINTING CONFIG FILE VALUES
     if (logToMon)
@@ -103,10 +87,7 @@ int main(int argc, char const *argv[]) {
     }
     
     //BEGINNING MDF FILE UPLOAD
-    runTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     Begin %s file upload...\n\n", runTime, settings->mdfPath);
-    printf("%s", logDescription);
-    appendToLog(logList, logDescription);
+    printf("Begin %s file upload...\n\n", settings->mdfPath);
 	
     mdfVal = readMetaDataFile(settings->mdfPath, actionsHead);
 	
@@ -131,8 +112,7 @@ int main(int argc, char const *argv[]) {
     }
     
     //PRINTING SUCCESS MESSAGE
-    runTime = execTime(startTime);
-    sprintf(logDescription, "[%lf]     %s uploaded succesfully!\n\n", runTime, settings->mdfPath);
+    printf("%s uploaded succesfully!\n\n", settings->mdfPath);
     
     //PRINT TO LOGIC
     if (logToMon)
@@ -144,6 +124,8 @@ int main(int argc, char const *argv[]) {
     {
         appendSimActionsToLog(logList, actionsHead);
     }
+
+    printf("Verifying simulator actions...\n\n");
 
     verificationVal = verifySimActions(actionsHead);
 
@@ -157,13 +139,11 @@ int main(int argc, char const *argv[]) {
         displayError(verificationVal);
     }
 
-    numApps = countApplications(actionsHead);
+    printf("Sim actions verified!\n\n");
 
-    pcbList = (struct PCB **) malloc(sizeof(struct PCB) * numApps);
+    printf("===============\nSimulator Start\n===============\n\n");
 
-    createPCBList(pcbList, actionsHead);
-
-    simVal = simulate(pcbList, settings);
+    simVal = simulate(actionsHead, settings);
 
     printf("%d\n", simVal);
 

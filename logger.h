@@ -1,26 +1,24 @@
-#include <time.h>
+#include <sys/time.h>
 #include "dataStructures.h"
 
 #ifndef LOGGER
 #define LOGGER
 
 //stores all operations in a linked list
-struct loggedOperation
+struct logEntry
 {
-    char *description;
-    struct loggedOperation *next;
+    char *entry;
+    struct logEntry *next;
 };
 
-void appendToLog(struct loggedOperation *logList, char *description);
+void appendToLog(struct logEntry *logList, char *entry);
 
-void appendSettingsToLog(struct loggedOperation *logList, struct configValues *settings);
+void appendSettingsToLog(struct logEntry *logList, struct configValues *settings);
 
-void appendSimActionsToLog(struct loggedOperation *logList, struct simAction *head);
+void appendSimActionsToLog(struct logEntry *logList, struct simAction *head);
 
-int createLogFile(char *fileName, struct loggedOperation *head);
+int createLogFile(char *fileName, struct logEntry *head);
 
-void freeLoggedOps(struct loggedOperation *head);
-
-double execTime(struct timespec start);
+void freeLoggedOps(struct logEntry *head);
 
 #endif
