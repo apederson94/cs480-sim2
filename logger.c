@@ -8,27 +8,38 @@
 
 void appendToLog(struct logEntry *logList, char *entry)
 {
-    struct logEntry *listIter;
-    listIter = logList;
+    struct logEntry *listIter = logList;
+    int pos = 0;
 
-    listIter->next = (struct logEntry *) malloc(sizeof(struct logEntry));
-    listIter->next->entry = entry;
+    while (listIter->next)
+    {
+        pos++;
+        listIter = listIter->next;
+    }
 
-    free(listIter);
+    if (pos > 0)
+    {
+        //PROGRAM CRASHES HERE "malloc(): memory corruption"
+        listIter->next = (struct logEntry *) calloc(1, sizeof(struct logEntry));
+        listIter = listIter->next;
+        listIter->entry = (char *) calloc(strLen(entry), sizeof(char));
+        listIter->entry = entry;
+    }
+
 }
 
 void appendSettingsToLog(struct logEntry *logList, struct configValues *settings)
 {
     char *version, *program, *cpuSched, *quantum, *memAvail, *cpuCycle, *ioCycle, *logTo, *logPath;
-    version = malloc(sizeof(settings->ver) * sizeof(char));
-    program = malloc(strLen(settings->mdfPath) * sizeof(char));
-    cpuSched = malloc(strLen(settings->cpuSched) * sizeof(char));
-    quantum = malloc(sizeof(settings->quantumTime) * sizeof(char));
-    memAvail = malloc(sizeof(settings->memoryAvailable) * sizeof(char));
-    cpuCycle = malloc(sizeof(settings->cpuCycleTime) * sizeof(char));
-    ioCycle = malloc(sizeof(settings->ioCycleTime) * sizeof(char));
-    logTo = malloc(strLen(settings->logTo) * sizeof(char));
-    logPath = malloc(strLen(settings->logPath) * sizeof(char));
+    version = calloc(100, sizeof(char));
+    program = calloc(100, sizeof(char));
+    cpuSched = calloc(100, sizeof(char));
+    quantum = calloc(100, sizeof(char));
+    memAvail = calloc(100, sizeof(char));
+    cpuCycle = calloc(100, sizeof(char));
+    ioCycle = calloc(100, sizeof(char));
+    logTo = calloc(100, sizeof(char));
+    logPath = calloc(100, sizeof(char));
     char *all[9] = {version, program, cpuSched, quantum, memAvail, cpuCycle, ioCycle, logTo, logPath};
     int pos;
 
@@ -45,7 +56,6 @@ void appendSettingsToLog(struct logEntry *logList, struct configValues *settings
     for (pos = 0; pos < 9; pos++)
     {
         appendToLog(logList, all[pos]);
-        free(all[pos]);
     }
 }
 
@@ -53,12 +63,12 @@ void appendSimActionsToLog(struct logEntry *logList, struct simAction *head)
 {
     struct simAction *actionsIter = head;
     char *cmd, *opString, *assocVal;
-    cmd = malloc(sizeof(char));
     
     while (actionsIter->next)
     {
-        opString = malloc(sizeof(char) * strLen(actionsIter->operationString));
-        assocVal = malloc(sizeof(char) * sizeof(actionsIter->assocVal));
+        cmd = calloc(100, sizeof(char));
+        opString = calloc(100, sizeof(char));
+        assocVal = calloc(100, sizeof(char));
         sprintf(cmd, "Op code letter: %c\n", actionsIter->commandLetter);
         sprintf(opString, "Op code name  : %s\n", actionsIter->operationString);
         sprintf(assocVal, "Op code value : %d\n\n", actionsIter->assocVal);
@@ -66,17 +76,13 @@ void appendSimActionsToLog(struct logEntry *logList, struct simAction *head)
         appendToLog(logList, cmd);
         appendToLog(logList, opString);
         appendToLog(logList, assocVal);
-        free(opString);
-        free(assocVal);
     }
 
-    free(cmd);
-    free(actionsIter);
 }
 
 int createLogFile(char *fileName, struct logEntry *head)
 {
-    struct logEntry *listIter = (struct logEntry *) malloc(sizeof(struct logEntry));
+    struct logEntry *listIter = (struct logEntry *) calloc(1, sizeof(struct logEntry));
     FILE *logFile = fopen(fileName, "w");
 
     if (!logFile)
@@ -104,6 +110,20 @@ void freeLoggedOps(struct logEntry *head)
     {
         entry = head;
         head = head->next;
+        free(entry->entry);
         free(entry);
     }
+}
+
+void printLog(struct logEntry *logList)
+{
+    struct logEntry *entry = logList;
+
+    while (entry->next)
+    {
+        printf("%s\n", entry->entry);
+    }
+
+    printf("%s\n", entry->entry);
+
 }

@@ -33,7 +33,6 @@ void printSimActions(struct simAction *head, struct configValues *settings)
         ptr = ptr->next;
     }
 
-    free(ptr);
 }
 
 //PRINTS ALL INFORMATION FORM A configValues STRUCT
@@ -159,9 +158,10 @@ int countApplications(struct simAction *head)
         {
             count++;
         }
+
+        tmp = tmp->next;
     }
 
-    free(tmp);
     return count;
 }
 
@@ -266,12 +266,14 @@ int verifySimActions(struct simAction *head)
 }
 
 //constructs a list of PCBs based upon started applications
-void createPCBList(struct PCB **pcbList, struct simAction *head)
+void createPCBList(struct PCB **pcbList, struct simAction *head, struct configValues *settings)
 {
-    struct simAction *actionIter = (struct simAction *) malloc(sizeof(struct simAction));
-    struct PCB *controlBlock = (struct PCB *) malloc(sizeof(struct PCB));
-    int processNum = 1;
+    struct simAction *actionIter = (struct simAction *) calloc(1, sizeof(struct simAction));
+    struct PCB *controlBlock = (struct PCB *) calloc(1, sizeof(struct PCB));
     char *new = "new";
+    int processNum = 0;
+    bool isCounting = FALSE;
+    int timeRemaining = 0;
 
     actionIter = head;
 
@@ -284,9 +286,43 @@ void createPCBList(struct PCB **pcbList, struct simAction *head)
             controlBlock->state = new;
             controlBlock->pc = actionIter;
 
-            pcbList[processNum-1] = controlBlock;
-
-            processNum++;
+            isCounting = TRUE;
         }
+
+        if (isCounting)
+        {
+            if (actionIter->commandLetter == 'P')
+            {
+                timeRemaining += actionIter->assocVal * settings->cpuCycleTime;
+            }
+            else if (actionIter->commandLetter == 'I'
+            || actionIter->commandLetter == 'O')
+            {
+                timeRemaining += actionIter->assocVal * settings->ioCycleTime;
+            }
+            else if (actionIter->commandLetter == 'A'
+            && strCmp(actionIter->operationString, "end"))
+            {
+                controlBlock->timeRemaining = timeRemaining;
+                pcbList[processNum] = controlBlock;
+                isCounting = FALSE;
+                processNum++;
+            }
+        }
+
+        actionIter = actionIter->next;
+    }
+}
+
+//sets state of all processes to \"ready\"
+void setStatesReady(struct PCB **pcbList, int numProcesses)
+{
+    int processNum;
+    struct PCB *controlBlock;
+
+    for (processNum = 0; processNum < numProcesses; processNum++)
+    {
+        controlBlock = pcbList[processNum];
+        controlBlock->state = "ready";
     }
 }

@@ -38,7 +38,7 @@ void strCopy(char *src, char *dest)
 char* getFileExt(char* src) 
 {
     int len = strLen(src);
-    char *ext = (char*) malloc(sizeof(char) * 5);
+    char *ext = (char*) calloc(5, sizeof(char));
     ext[4] = '\0';
 
     for (int pos = 4; pos > 0; pos--) 
@@ -102,13 +102,7 @@ int strContains(char* src, char* substr)
     
     }
 
-    //IF substrChar = NULL, RETURN TRUE
-    if (!substrChar) 
-    {
-        return TRUE;
-    }
-
-    return FALSE;
+    return !substrChar;
 }
 
 //RETURNS END SYMBOL POSITION OF SUBSTRING IN STRING
@@ -191,7 +185,7 @@ void removeNonSymbols(char *src)
     int tmpPos = 0;
     int pos;
     char sym;
-    char *tmp = (char*) malloc(sizeof(char) * 100);
+    char *tmp = (char*) calloc(100, sizeof(char));
 
     for (pos = 0; pos < len; pos++) 
     {

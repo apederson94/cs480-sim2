@@ -3,6 +3,8 @@
 
 //DATA STRUCTURES AND THEIR RELATED FUNCTIONS
 
+//TODO: FREE_SETTINGS FUNCTION
+
 //HOLDS CONFIG FILE INFORMATION
 struct configValues
 {
@@ -32,12 +34,13 @@ struct simAction
 struct PCB
 {
     int processNum;
+    int timeRemaining;
     char *state;
     struct simAction *pc;
 };
 
 //creates a list of pcbs
-void createPCBList(struct PCB *pcbList[], struct simAction *head);
+void createPCBList(struct PCB **pcbList, struct simAction *head, struct configValues *settings);
 
 //FREES ALL MEMORY ASSOCIATED WITH simActionS
 void freeActions(struct simAction* head);
@@ -61,5 +64,7 @@ int countApplications(struct simAction *head);
         * application must open before closing
     * returns ERROR_CODE or 0 if successful*/
 int verifySimActions(struct simAction *head);
+
+void setStatesReady(struct PCB **pcbList, int numProcesses);
 
 #endif

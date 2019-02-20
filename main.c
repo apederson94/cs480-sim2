@@ -15,14 +15,14 @@ int main(int argc, char const *argv[]) {
     //VARIABLE DECLARATIONS
     char *fileExt;
     char *fileName = (char*) argv[1];
-    struct configValues *settings = (struct configValues*) malloc(sizeof(struct configValues));
-    struct simAction *actionsHead = (struct simAction*) malloc(sizeof(struct simAction));
-    struct logEntry *logList = (struct logEntry*) malloc(sizeof(struct logEntry));
+    struct configValues *settings = (struct configValues*) calloc(1, sizeof(struct configValues));
+    struct simAction *actionsHead = (struct simAction*) calloc(1, sizeof(struct simAction));
+    struct logEntry *logList = (struct logEntry*) calloc(1, sizeof(struct logEntry));
     int cfgVal, mdfVal, verificationVal, simVal;
     bool logToFile = FALSE;
     bool logToMon = FALSE;
 
-    printf("SIMULATOR PROGRAM\n===================\n\n");
+    printf("===================\nSIMULATOR PROGRAM\n===================\n\n");
 
     //CORRECT NUMBER OF INPUTS CHECK
     if (argc != 2) 
@@ -38,6 +38,8 @@ int main(int argc, char const *argv[]) {
         displayError(FILE_TYPE_ERROR);
         return 1;
     }
+
+    free(fileExt);
 
     //STARTING FILE UPLOAD PROCESS
     printf("Begin %s upload...\n\n", fileName);
@@ -90,7 +92,7 @@ int main(int argc, char const *argv[]) {
     printf("Begin %s file upload...\n\n", settings->mdfPath);
 	
     mdfVal = readMetaDataFile(settings->mdfPath, actionsHead);
-	
+
     //ERROR CHECKING FOR META-DATA FILE READING
     if (mdfVal > 0) 
     {

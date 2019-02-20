@@ -21,4 +21,6 @@ int createLogFile(char *fileName, struct logEntry *head);
 
 void freeLoggedOps(struct logEntry *head);
 
+void printLog(struct logEntry *logList);
+
 #endif

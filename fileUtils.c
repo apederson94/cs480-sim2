@@ -10,7 +10,7 @@
 //READS AND STORES ALL VALUES FROM CONFIG FILE
 int readConfigFile(char *fileName, struct configValues *settings) 
 {
-    char line[100];
+    char *line = calloc(100, sizeof(char));
     int pos, len, valIter, num;
     float ver;
     FILE *config = fopen(fileName, "r");
@@ -24,7 +24,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
 
     while (fgets(line, 100, config)) 
     {
-        char *value = (char*) malloc(sizeof(char) * 100);
+        char *value = (char*) calloc(100, sizeof(char));
         pos = substrPos(line, ":"); 
         if (pos >= 0)
         { 
@@ -161,6 +161,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
         valIter++;
     }
 
+    free(line);
     fclose(config);
 
     return 0;
@@ -169,11 +170,11 @@ int readConfigFile(char *fileName, struct configValues *settings)
 //READS ALL INFORMATION FROM META-DATA FILE
 int readMetaDataFile(char *fileName, struct simAction *firstAction) 
 {
-    char line[100];
+    char *line = (char *) calloc(100, sizeof(char));
     int lineLength, pos, cmdIter, setDataResult;
     cmdIter = 0;
     char command[40];
-    struct simAction *current = (struct simAction*) malloc(sizeof(struct simAction));
+    struct simAction *current = firstAction;
     
     //OPENS METADATA FILE AND ENSURE IT DID NOT FAIL
     FILE *mdf = fopen(fileName, "r");
@@ -181,8 +182,6 @@ int readMetaDataFile(char *fileName, struct simAction *firstAction)
     if (!mdf) {
         return MDF_OPEN_ERROR;
     }
-
-    current = firstAction;
 
     while (fgets(line, 100, mdf)) 
     {
@@ -197,7 +196,7 @@ int readMetaDataFile(char *fileName, struct simAction *firstAction)
 
                 if (line[pos] == ';') 
                 {
-                    struct simAction *next = (struct simAction*) malloc(sizeof(struct simAction));
+                    struct simAction *next = (struct simAction*) calloc(1, sizeof(struct simAction));
                     command[cmdIter] = '\0';
                     cmdIter = 0;
 
