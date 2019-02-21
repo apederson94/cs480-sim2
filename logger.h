@@ -1,5 +1,6 @@
 #include <sys/time.h>
 #include "dataStructures.h"
+#include "booleans.h"
 
 #ifndef LOGGER
 #define LOGGER
@@ -10,6 +11,8 @@ struct logEntry
     char *entry;
     struct logEntry *next;
 };
+
+void createLogHeader(struct logEntry *logList);
 
 void appendToLog(struct logEntry *logList, char *entry);
 
@@ -22,5 +25,7 @@ int createLogFile(char *fileName, struct logEntry *head);
 void freeLoggedOps(struct logEntry *head);
 
 void printLog(struct logEntry *logList);
+
+void logIt(char *line, struct logEntry *logList, bool logToMon, bool logToFile);
 
 #endif

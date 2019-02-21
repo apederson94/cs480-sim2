@@ -85,6 +85,7 @@ int main(int argc, char const *argv[]) {
     
     if (logToFile)
     {
+        createLogHeader(logList);
         appendSettingsToLog(logList, settings);
     }
     
@@ -111,22 +112,6 @@ int main(int argc, char const *argv[]) {
         printSimActions(actionsHead, settings);
     }
 
-    if (logToFile)
-    {
-        appendSimActionsToLog(logList, actionsHead);
-    }
-    
-    //PRINT TO LOGIC
-    if (logToMon)
-    {
-        printSimActions(actionsHead, settings);
-    }
-
-    if (logToFile)
-    {
-        appendSimActionsToLog(logList, actionsHead);
-    }
-
     printf("Verifying simulator actions...\n\n");
 
     verificationVal = verifySimActions(actionsHead);
@@ -143,9 +128,7 @@ int main(int argc, char const *argv[]) {
 
     printf("Sim actions verified!\n\n");
 
-    printf("===============\nSimulator Start\n===============\n\n");
-
-    simVal = simulate(actionsHead, settings);
+    simVal = simulate(actionsHead, settings, logList);
 
     if (simVal) {
         //TODO: ERRORS???
@@ -155,12 +138,12 @@ int main(int argc, char const *argv[]) {
     {
         createLogFile(settings->logPath, logList);
     }
-    
-    printf("=========================\nEnd Simulation - Complete\n=========================\n");
 
     //FREEING DATA STRUCTS USED TO STORE READ INFORMATION
+    
     freeActions(actionsHead);
-    free(settings);
+    freeLoggedOps(logList);
+    freeConfigValues(settings);
 
     return 0;
 }

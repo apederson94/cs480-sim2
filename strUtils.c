@@ -8,12 +8,11 @@
 //RETURNS STRING LENGTH
 int strLen(const char* string) 
 {
-    char curr = string[0];
     int len = 0;
-    while (curr != '\0') 
+    
+    while (string[len] != '\0') 
     {
-        len += 1;
-        curr = string[len];
+        len++;
     }
 
     return len;

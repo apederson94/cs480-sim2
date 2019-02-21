@@ -16,6 +16,7 @@ void freeActions(struct simAction* head)
     {
         tmp = head;
         head = head->next;
+        free(tmp->operationString);
         free(tmp);
     }
 }
@@ -121,6 +122,7 @@ int setActionData(char *command, struct simAction *action)
             {
                 return M_OP_STRING_ERROR;
             }
+            action->operationString = (char *) calloc(strLen(opStr) + 1, sizeof(char));
             strCopy(opStr, action->operationString);
             opFlag = FALSE;
         } 
@@ -259,16 +261,17 @@ int verifySimActions(struct simAction *head)
         {
             return OS_START_ERROR;
         }
-    }
 
-    free(tmp);
+        tmp = tmp->next;
+    }
+    
     return 0;
 }
 
 //constructs a list of PCBs based upon started applications
 void createPCBList(struct PCB **pcbList, struct simAction *head, struct configValues *settings)
 {
-    struct simAction *actionIter = (struct simAction *) calloc(1, sizeof(struct simAction));
+    struct simAction *actionIter;
     struct PCB *controlBlock = (struct PCB *) calloc(1, sizeof(struct PCB));
     char *new = "new";
     int processNum = 0;
@@ -325,4 +328,23 @@ void setStatesReady(struct PCB **pcbList, int numProcesses)
         controlBlock = pcbList[processNum];
         controlBlock->state = "ready";
     }
+}
+
+void freePCBs(struct PCB **pcbList, int numApps)
+{
+    int pos;
+    
+    for (pos = 0; pos < numApps; pos++)
+    {
+        free(pcbList[pos]);
+    }
+}
+
+void freeConfigValues(struct configValues *settings)
+{
+    free(settings->mdfPath);
+    free(settings->cpuSched);
+    free(settings->logPath);
+    free(settings->logTo);
+    free(settings);
 }

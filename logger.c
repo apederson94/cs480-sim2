@@ -5,11 +5,15 @@
 #include "errors.h"
 #include "strUtils.h"
 #include "dataStructures.h"
+#include "booleans.h"
 
 void appendToLog(struct logEntry *logList, char *entry)
 {
     struct logEntry *listIter = logList;
+    char *newEntry = calloc(strLen(entry) + 1, sizeof(char));
     int pos = 0;
+
+    strCopy(entry, newEntry);
 
     while (listIter->next)
     {
@@ -17,15 +21,17 @@ void appendToLog(struct logEntry *logList, char *entry)
         listIter = listIter->next;
     }
 
-    if (pos > 0)
-    {
-        //PROGRAM CRASHES HERE "malloc(): memory corruption"
-        listIter->next = (struct logEntry *) calloc(1, sizeof(struct logEntry));
-        listIter = listIter->next;
-        listIter->entry = (char *) calloc(strLen(entry), sizeof(char));
-        listIter->entry = entry;
-    }
+    listIter->next = (struct logEntry *) calloc(1, sizeof(struct logEntry));
+    listIter = listIter->next;
+    listIter->entry = newEntry;
 
+}
+
+void createLogHeader(struct logEntry *logList)
+{
+    appendToLog(logList, "==================================================\n");
+    appendToLog(logList, "Simulator Log File Header\n");
+    appendToLog(logList, "==================================================\n\n");
 }
 
 void appendSettingsToLog(struct logEntry *logList, struct configValues *settings)
@@ -56,7 +62,11 @@ void appendSettingsToLog(struct logEntry *logList, struct configValues *settings
     for (pos = 0; pos < 9; pos++)
     {
         appendToLog(logList, all[pos]);
+        free(all[pos]);
     }
+
+    appendToLog(logList, "==================================================\n");
+    appendToLog(logList, "==================================================\n\n");
 }
 
 void appendSimActionsToLog(struct logEntry *logList, struct simAction *head)
@@ -82,7 +92,7 @@ void appendSimActionsToLog(struct logEntry *logList, struct simAction *head)
 
 int createLogFile(char *fileName, struct logEntry *head)
 {
-    struct logEntry *listIter = (struct logEntry *) calloc(1, sizeof(struct logEntry));
+    struct logEntry *logIter;
     FILE *logFile = fopen(fileName, "w");
 
     if (!logFile)
@@ -90,14 +100,23 @@ int createLogFile(char *fileName, struct logEntry *head)
         return LOG_OPEN_ERROR;
     }
 
-    listIter = head;
+    logIter = head;
 
-    while (listIter->next)
+
+    while (logIter->next)
     {
-        fputs(listIter->entry, logFile);
+        if (logIter->entry)
+        {
+            substr(logIter->entry, 0, strLen(logIter->entry) - 1, logIter->entry);
+            fprintf(logFile, "%s\n", logIter->entry);
+        }
+        
+        logIter = logIter->next;
     }
 
-    free(listIter);
+    fprintf(logFile, "%s\n", logIter->entry);
+
+    fclose(logFile);
 
     return 0;
 }
@@ -126,4 +145,17 @@ void printLog(struct logEntry *logList)
 
     printf("%s\n", entry->entry);
 
+}
+
+void logIt(char *line, struct logEntry *logList, bool logToMon, bool logToFile)
+{
+    if (logToMon)
+    {
+        printf("%s", line);
+    }
+    
+    if (logToFile)
+    {
+        appendToLog(logList, line);
+    }
 }

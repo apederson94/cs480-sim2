@@ -37,6 +37,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 ver = s2f(value);
+                free(value);
 
                 if (ver > 10.0f || ver < 0.0f) {
                     return VERSION_PHASE_VALUE_ERROR;
@@ -84,6 +85,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 num = s2i(value);
+                free(value);
 
                 if (num > 100 || num < 0) {
                     return QUANTUM_TIME_VALUE_ERROR;
@@ -100,6 +102,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
 
                 
                 num = s2i(value);
+                free(value);
 
                 if (num < 0 || num > 102400) 
                 {
@@ -113,6 +116,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 num = s2i(value);
+                free(value);
 
                 if (num < 1 || num > 1000) 
                 {
@@ -126,6 +130,7 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 num = s2i(value);
+                free(value);
 
                 if (num < 1 || num > 10000) 
                 {
@@ -215,6 +220,7 @@ int readMetaDataFile(char *fileName, struct simAction *firstAction)
     }
 
     fclose(mdf);
+    free(line);
 
     return 0;
 }

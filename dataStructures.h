@@ -25,8 +25,8 @@ struct configValues
 struct simAction 
 {
     char commandLetter;
-    char operationString[20];
     int assocVal;
+    char *operationString;
     struct simAction *next;
 };
 
@@ -66,5 +66,9 @@ int countApplications(struct simAction *head);
 int verifySimActions(struct simAction *head);
 
 void setStatesReady(struct PCB **pcbList, int numProcesses);
+
+void freePCBs(struct PCB **pcbList, int numApps);
+
+void freeConfigValues(struct configValues *settings);
 
 #endif
