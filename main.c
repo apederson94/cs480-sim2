@@ -103,6 +103,9 @@ int main(int argc, char const *argv[]) {
         displayError(mdfVal);
     }
 
+    //PRINTING SUCCESS MESSAGE
+    printf("%s uploaded succesfully!\n\n", settings->mdfPath);
+
     if (logToMon)
     {
         printSimActions(actionsHead, settings);
@@ -112,9 +115,6 @@ int main(int argc, char const *argv[]) {
     {
         appendSimActionsToLog(logList, actionsHead);
     }
-    
-    //PRINTING SUCCESS MESSAGE
-    printf("%s uploaded succesfully!\n\n", settings->mdfPath);
     
     //PRINT TO LOGIC
     if (logToMon)
@@ -147,7 +147,16 @@ int main(int argc, char const *argv[]) {
 
     simVal = simulate(actionsHead, settings);
 
-    printf("%d\n", simVal);
+    if (simVal) {
+        //TODO: ERRORS???
+    }
+
+    if (logToFile)
+    {
+        createLogFile(settings->logPath, logList);
+    }
+    
+    printf("=========================\nEnd Simulation - Complete\n=========================\n");
 
     //FREEING DATA STRUCTS USED TO STORE READ INFORMATION
     freeActions(actionsHead);

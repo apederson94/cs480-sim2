@@ -1,10 +1,13 @@
 #include "dataStructures.h"
 #include "strUtils.h"
+#include "errors.h"
+#include "scheduler.h"
+#include <stdio.h>
 
-int scheduleNext(struct PCB **pcbList, char *schedluer, int numProcesses)
+int scheduleNext(struct PCB **pcbList, char *scheduler, int numProcesses)
 {
     int pcbIter;
-    if (strCmp(schedluer, "FCFS-N"))
+    if (strCmp(scheduler, "FCFS-N"))
     {
         for (pcbIter = 0; pcbIter < numProcesses; pcbIter++)
         {
@@ -13,6 +16,9 @@ int scheduleNext(struct PCB **pcbList, char *schedluer, int numProcesses)
                 return pcbList[pcbIter]->processNum;
             }
         }
+    
+        return ALL_PROGRAMS_DONE;
+        
     }
 
     return 0;
