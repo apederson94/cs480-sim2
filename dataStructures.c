@@ -7,7 +7,11 @@
 
 //DATA STRUCTURE FUNCTIONS
 
-//FREES ALL MEMORY ASSOCIATED WITH simActionS
+/*
+    frees all actions in a linked list of actions
+        * iterates over list and frees the previous nodes
+          and their associated values
+*/
 void freeActions(struct simAction* head) 
 {
     struct simAction *tmp;
@@ -21,7 +25,11 @@ void freeActions(struct simAction* head)
     }
 }
 
-//PRINTS ALL ALL RELEVANT simAction INFORMATION FOR ALL simActionS
+/*
+    prints all sim actions and their relevant info
+        * iterates over the list and prints all of the info associates
+          with the actions in the list
+*/
 void printSimActions(struct simAction *head, struct configValues *settings) 
 {
     struct simAction *ptr = head;
@@ -36,7 +44,9 @@ void printSimActions(struct simAction *head, struct configValues *settings)
 
 }
 
-//PRINTS ALL INFORMATION FORM A configValues STRUCT
+/*
+    prints all the info contained in a configValue struct
+*/
 void printConfigValues(struct configValues *src, char *fileName) 
 {
 
@@ -52,7 +62,15 @@ void printConfigValues(struct configValues *src, char *fileName)
     
 }
 
-//TURNS A COMMAND STRING INTO AN ACTION
+/*
+    sets data for a simAction struct
+        * iterates over command
+            * grabs command letter  
+            * builds an operationString
+            * grabs and converts associated value
+        * sets data to sim action struct
+        * returns 0 on success, error code otherwise
+*/
 int setActionData(char *command, struct simAction *action) 
 {
     int cmdLength, pos, opFlag, opIter, value;
@@ -62,9 +80,10 @@ int setActionData(char *command, struct simAction *action)
     pos = 0;
     value = 0;
     opIter = 0;
-    opFlag = FALSE;
+    opFlag = FALSE; //operation string flag; alerts function that the operation string is being parsed now
     currentChar = command[pos];
 
+    //if (); don't exist in the string, return error
     if (!strContains(command, "(") 
     || !strContains(command, ")")
     || !strContains(command, ";")) 
@@ -74,21 +93,30 @@ int setActionData(char *command, struct simAction *action)
 
     while (pos < cmdLength) 
     {
+
+        //skip whitespace and check for an uppercase character
         if (!(currentChar == ' ') 
         && charIsUpper(currentChar)) 
         {
             action->commandLetter = command[pos];
 
-        } 
+        }
+
+        //check for '(' and set the operationString flag to true 
         else if (currentChar == '(') 
         {
             opFlag = TRUE;
 
         } 
+
+        //starts the operation string finished parsing logic
         else if (currentChar == ')') 
         {
+
+            //add null terminator to operation string
             opStr[opIter] = '\0';
 
+            //returns error if command letters S or A are not used with "start" or "end"
             if ((!strCmp(opStr, "start") 
             && !strCmp(opStr, "end")
             && (action->commandLetter == 'S' || action->commandLetter == 'A'))) 
@@ -96,11 +124,15 @@ int setActionData(char *command, struct simAction *action)
                 return SA_OP_STRING_ERROR;
 
             } 
+
+            //returns error if command letter P is not used with operation string "run"
             else if (!strCmp(opStr, "run") && action->commandLetter == 'P') 
             {
                 return P_OP_STRING_ERROR;
 
             } 
+
+            //returns error if command letter I is not used with operation string "hard drive" or "keyboard"
             else if (!strCmp(opStr, "hard drive")
             && !strCmp(opStr, "keyboard")
             && action->commandLetter == 'I') 
@@ -108,6 +140,8 @@ int setActionData(char *command, struct simAction *action)
                 return I_OP_STRING_ERROR;
                 
             } 
+
+            //returns error if command letter O is not used with operation string "printer" or "monitor"
             else if (!strCmp(opStr, "hard drive") 
             && !strCmp(opStr, "printer")
             && !strCmp(opStr, "monitor") 
@@ -116,39 +150,58 @@ int setActionData(char *command, struct simAction *action)
                 return O_OP_STRING_ERROR;
 
             } 
+
+            //returns error if command letter M is not used with operation string "allocate" or "access"
             else if (!strCmp(opStr, "allocate") 
             && !strCmp(opStr, "access") 
             && action->commandLetter == 'M') 
             {
                 return M_OP_STRING_ERROR;
             }
-            action->operationString = (char *) calloc(strLen(opStr) + 1, sizeof(char));
+
+            //allocates operationString memory as leng of opStr + 1 for null terminator
+            action->operationString = (char *) calloc(strLen(opStr)+1, sizeof(char));
             strCopy(opStr, action->operationString);
             opFlag = FALSE;
         } 
+
+        //logic for building operation string
         else if (opFlag) 
         {
             opStr[opIter] = currentChar;
             opIter++;
-        } 
+        }
+
+        //logic for dealing with associated value 
         else if (!opFlag 
         && !(currentChar == ';') 
         && charIsNum(currentChar)) 
         {
-            value *= 10;
-            value += (currentChar - 48);
+            value *= 10; //moves current numbers in value one position to the left
+            value += c2i(currentChar); //adds new number to value
         }
+
+        //moves to the next character in the mdf command string
         pos++;
         currentChar = command[pos];
     }
+
+    //returns error if value is negative
     if (value < 0) {
         return NEGATIVE_MDF_VALUE_ERROR;
     }
+
+    //sets associated value and returns with success code
     action->assocVal = value;
     return 0;
 }
 
-//RETURNS THE NUMBER OF APPLICATIONS TO BE RUN IN A SIM ACTION LIST
+/*
+    counts the number of A(start)0; commands in the meta data
+        * iterates over simAction linked list
+        * counts the number of times A(start)0; appears
+        * returns the number of A(start)0; appearances
+*/
 int countApplications(struct simAction *head)
 {
     int count = 0;
@@ -167,22 +220,26 @@ int countApplications(struct simAction *head)
     return count;
 }
 
-/*verifies that:
-    * system:
-        * system starts first
-        * system starts once
-        * system end is the final call
-    * application:
-        * application must start before ending
-        * application must end before starting again
-    * returns ERROR_CODE or 0 if successful*/
+/*
+    verifications:
+        * system:
+            * system starts first
+            * system starts once
+            * system end is the final call
+        * application:
+            * application must start before ending
+            * application must end before starting again
+        * returns ERROR_CODE or 0 if successful
+*/
 int verifySimActions(struct simAction *head)
 {
+    //boolean flags for showing what is currently active
     bool osStart = FALSE;
     bool appStart = FALSE;
     bool osEnd = FALSE;
     bool first = TRUE;
-    struct simAction *tmp = head;
+
+    struct simAction *tmp = head; //linked list iterator
     char *opString;
     char cmd;
 
@@ -190,11 +247,13 @@ int verifySimActions(struct simAction *head)
     {
         cmd = tmp->commandLetter;
         opString = tmp->operationString;
-
+    
+        //logic for dealing with the first command in the linked list
         if (first)
         {
             first = FALSE;
-            //first command must be start OS
+
+            //first command must be start OS, returns error otherwise
             if (cmd == 'S'
             && strCmp(opString, "start"))
             {
@@ -205,36 +264,49 @@ int verifySimActions(struct simAction *head)
                 return OS_START_ERROR;
             }
         }
+
+        //logic for dealing with everything after the OS starts
         else if (osStart)
         {
-            //OS may only start once
+
+            //OS may only start once, returns error otherwise
             if (cmd == 'S'
             && strCmp(opString, "start"))
             {
                 return MULTIPLE_OS_START_ERROR;
             }
+
+            //if the OS has not ended logic
             else if (!osEnd)
             {
+
+                //logic for dealing with applications
                 if (cmd == 'A')
                 {
+                    //if an application has already started logic
                     if (appStart)
                     {
-                        //starting app while another has not ended results in error
+                        //starting app while another is open results in error
                         if (strCmp(opString, "start"))
                         {
                             return CONCURRENT_APP_START_ERROR;
                         }
+
+                        //otherwise "end" operation string must have been issued
                         else
                         {
                             appStart = FALSE;
                         }
                     }
+
+                    //logic for dealing with if an application is not currently open
                     else
                     {
                         if (strCmp(opString, "start"))
                         {
                             appStart = TRUE;
                         }
+
                         //if app hasn't started and end is called, result is error
                         else
                         {
@@ -242,14 +314,15 @@ int verifySimActions(struct simAction *head)
                         }
                     }
                 }
-                else if (cmd == 'S')
+
+                //logic for dealing with operating system end call
+                else if (cmd == 'S'
+                && strCmp(opString, "end"))
                 {
-                    if (strCmp(opString, "end"))
-                    {
-                        osEnd = TRUE;
-                    }
+                    osEnd = TRUE;
                 }
             }
+
             //anything coming after OS end call results in error
             else
             {
@@ -257,67 +330,92 @@ int verifySimActions(struct simAction *head)
             }
             
         }
+        //not sure if this is redundant or not, but if OS doesn't start first this will hit maybe?
         else if (!osStart)
         {
             return OS_START_ERROR;
         }
 
+        //iterates linked list
         tmp = tmp->next;
     }
     
     return 0;
 }
 
-//constructs a list of PCBs based upon started applications
+/*
+    constructs a list of PCB structs:
+        * creates a PCB for each app in linked list:
+            * increments process numbers
+            * selects A(start); item as program counter from simAction linked list
+            * calculates time remaining for process
+            * sets state to "new"
+*/
 void createPCBList(struct PCB **pcbList, struct simAction *head, struct configValues *settings)
 {
     struct simAction *actionIter;
     struct PCB *controlBlock = (struct PCB *) calloc(1, sizeof(struct PCB));
     char *new = "new";
     int processNum = 0;
-    bool isCounting = FALSE;
+    bool isCalculating = FALSE; //flag to tell function that calculation of time is taking place for time remaining
     int timeRemaining = 0;
 
     actionIter = head;
 
     while(actionIter->next)
     {
+        //if application start is found logic
         if (actionIter->commandLetter == 'A'
         && strCmp(actionIter->operationString, "start"))
         {
+            //sets process number, state to new, and program counter
             controlBlock->processNum = processNum;
             controlBlock->state = new;
             controlBlock->pc = actionIter;
 
-            isCounting = TRUE;
+            //turns on calculating flag
+            isCalculating = TRUE;
         }
 
-        if (isCounting)
+        //logic for calculating time remaining for a PCB
+        if (isCalculating)
         {
+
+            //command letter P calculation logic
             if (actionIter->commandLetter == 'P')
             {
+                //increase time remaining by associated value * cpu cycle time
                 timeRemaining += actionIter->assocVal * settings->cpuCycleTime;
             }
+
+            //command letters I & O calculation logic
             else if (actionIter->commandLetter == 'I'
             || actionIter->commandLetter == 'O')
             {
+                //increase time remaining by associated value * I/O cycle time
                 timeRemaining += actionIter->assocVal * settings->ioCycleTime;
             }
+
+            //if application end reached logic
             else if (actionIter->commandLetter == 'A'
             && strCmp(actionIter->operationString, "end"))
             {
+                //set time remaining, put PCB in PCBList, turn off calculating flagg, & increment process number
                 controlBlock->timeRemaining = timeRemaining;
                 pcbList[processNum] = controlBlock;
-                isCounting = FALSE;
+                isCalculating = FALSE;
                 processNum++;
             }
         }
 
+        //iterate over the linked list
         actionIter = actionIter->next;
     }
 }
 
-//sets state of all processes to \"ready\"
+/*
+    iterates over pcbList and sets state of all PCBs to "ready"
+*/
 void setStatesReady(struct PCB **pcbList, int numProcesses)
 {
     int processNum;
@@ -330,6 +428,12 @@ void setStatesReady(struct PCB **pcbList, int numProcesses)
     }
 }
 
+
+/*
+    frees PCBList memory:
+        * frees all PCBs in the array
+        * frees the PCB array at the end
+*/
 void freePCBs(struct PCB **pcbList, int numApps)
 {
     int pos;
@@ -338,8 +442,16 @@ void freePCBs(struct PCB **pcbList, int numApps)
     {
         free(pcbList[pos]);
     }
+
+    free(pcbList);
 }
 
+
+/*
+    frees all of the memory for configValues struct:
+        * frees all allocated strings from struct
+        * frees the rest of the struct at the end
+*/
 void freeConfigValues(struct configValues *settings)
 {
     free(settings->mdfPath);

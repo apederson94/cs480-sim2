@@ -142,7 +142,7 @@ int main(int argc, char const *argv[]) {
     //FREEING DATA STRUCTS USED TO STORE READ INFORMATION
     
     freeActions(actionsHead);
-    freeLoggedOps(logList);
+    freeLog(logList);
     freeConfigValues(settings);
 
     return 0;

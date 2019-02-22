@@ -10,10 +10,7 @@
 void appendToLog(struct logEntry *logList, char *entry)
 {
     struct logEntry *listIter = logList;
-    char *newEntry = calloc(strLen(entry) + 1, sizeof(char));
     int pos = 0;
-
-    strCopy(entry, newEntry);
 
     while (listIter->next)
     {
@@ -21,9 +18,14 @@ void appendToLog(struct logEntry *logList, char *entry)
         listIter = listIter->next;
     }
 
-    listIter->next = (struct logEntry *) calloc(1, sizeof(struct logEntry));
-    listIter = listIter->next;
-    listIter->entry = newEntry;
+    if (listIter->entry)
+    {
+        listIter->next = (struct logEntry *) calloc(1, sizeof(struct logEntry));
+        listIter = listIter->next;
+    }
+    
+    listIter->entry = (char *) calloc(strLen(entry)+1, sizeof(char));
+    strCopy(entry, listIter->entry);
 
 }
 
@@ -121,17 +123,21 @@ int createLogFile(char *fileName, struct logEntry *head)
     return 0;
 }
 
-void freeLoggedOps(struct logEntry *head)
+void freeLog(struct logEntry *head)
 {
-    struct logEntry *entry = head;
+    struct logEntry *tmp;
 
-    while (entry->next)
+    while (head->next)
     {
-        entry = head;
+        tmp = head;
         head = head->next;
-        free(entry->entry);
-        free(entry);
+        free(tmp->entry);
+        free(tmp);
     }
+
+    free(head->entry);
+    free(head);
+
 }
 
 void printLog(struct logEntry *logList)

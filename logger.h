@@ -22,7 +22,7 @@ void appendSimActionsToLog(struct logEntry *logList, struct simAction *head);
 
 int createLogFile(char *fileName, struct logEntry *head);
 
-void freeLoggedOps(struct logEntry *head);
+void freeLog(struct logEntry *head);
 
 void printLog(struct logEntry *logList);
 

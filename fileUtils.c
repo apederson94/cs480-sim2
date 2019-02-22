@@ -37,7 +37,6 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 ver = s2f(value);
-                free(value);
 
                 if (ver > 10.0f || ver < 0.0f) {
                     return VERSION_PHASE_VALUE_ERROR;
@@ -53,7 +52,8 @@ int readConfigFile(char *fileName, struct configValues *settings)
                 if (strCmp(settings->logTo, "File") 
                 || strCmp(settings->logTo, "Both")) 
                 {
-                    settings->logPath = value;
+                    settings->logPath = (char *) calloc(strLen(value)+1, sizeof(char));
+                    strCopy(value, settings->logPath);
 
                 } else 
                 {
@@ -77,7 +77,8 @@ int readConfigFile(char *fileName, struct configValues *settings)
                  } 
                  else 
                  {
-                    settings->cpuSched = value;
+                    settings->cpuSched = (char *) calloc(strLen(value)+1, sizeof(char));
+                    strCopy(value, settings->cpuSched);
                  }
 
             } 
@@ -85,7 +86,6 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 num = s2i(value);
-                free(value);
 
                 if (num > 100 || num < 0) {
                     return QUANTUM_TIME_VALUE_ERROR;
@@ -102,21 +102,19 @@ int readConfigFile(char *fileName, struct configValues *settings)
 
                 
                 num = s2i(value);
-                free(value);
 
                 if (num < 0 || num > 102400) 
                 {
                     return MEMORY_AVAIL_VALUE_ERROR;
                 }
 
-                settings->memoryAvailable = s2i(value);
+                settings->memoryAvailable = num;
 
             } 
             else if (strContains(line, "Processor Cycle Time")) 
             {
                 
                 num = s2i(value);
-                free(value);
 
                 if (num < 1 || num > 1000) 
                 {
@@ -130,7 +128,6 @@ int readConfigFile(char *fileName, struct configValues *settings)
             {
                 
                 num = s2i(value);
-                free(value);
 
                 if (num < 1 || num > 10000) 
                 {
@@ -148,7 +145,9 @@ int readConfigFile(char *fileName, struct configValues *settings)
                 {
                     return INVALID_LOG_TO_ERROR;
                 }
-                settings->logTo = value;
+                
+                settings->logTo = (char *) calloc(strLen(value)+1, sizeof(char));
+                strCopy(value, settings->logTo);
 
             } 
             else if (strContains(line, "File Path:")) 
@@ -159,10 +158,12 @@ int readConfigFile(char *fileName, struct configValues *settings)
                     return MDF_LOCATION_ERROR;
                 }
 
-                settings->mdfPath = value;
+                settings->mdfPath = (char *) calloc(strLen(value)+1, sizeof(char));
+                strCopy(value, settings->mdfPath);
             }
         }
 
+        free(value);
         valIter++;
     }
 
