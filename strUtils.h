@@ -39,6 +39,9 @@ float s2f(char *src);
 //converts a string into an int value
 int s2i(char *src);
 
+//converts a character into an int value
+int c2i(char src);
+
 //CHECKS PROVIDED STRING AGAINST COMPATIBLE SCHEDULER TYPES
 int checkCpuSched(char *src);
 

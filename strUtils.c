@@ -5,7 +5,9 @@
 
 //ALL STRING-RELATED UTILITIES
 
-//RETURNS STRING LENGTH
+/*
+    returns the length of a string w/o null terminator
+*/
 int strLen(const char* string) 
 {
     int len = 0;
@@ -18,28 +20,40 @@ int strLen(const char* string)
     return len;
 }
 
-//COPIES ONE STRING INTO ANOTHER
+/*
+    copies one string into another
+*/
 void strCopy(char *src, char *dest) 
 {
     int len = strLen(src);
     int pos;
+
+    //if both strings are allocated
     if (src && dest) 
     {
         for (pos = 0; pos < len; pos++) 
         {
             dest[pos] = src[pos];
         }
+
+        //adds null terminator to end of string
         dest[pos] = '\0';
     }
 }
 
-//READS THE LAST 4 OF A STRING TO DETERMINE THE EXTENSION
+/*
+    gets and returns the file extension from a string
+*/
 char* getFileExt(char* src) 
 {
     int len = strLen(src);
+    //allocates 5 chars in memory
     char *ext = (char*) calloc(5, sizeof(char));
+    
+    //sets null terminator on string first
     ext[4] = '\0';
 
+    //iterates over src in reverse order for 4 positions
     for (int pos = 4; pos > 0; pos--) 
     {
         ext[4-pos] = src[len-pos];
@@ -48,28 +62,41 @@ char* getFileExt(char* src)
     return ext;
 }
 
-//COMPARES TWO STRINGS
+/*
+    compares two strings and returns a boolean value 
+*/
 int strCmp(const char* src, char* target) 
 {
-    int src_len = strLen(src);
+    int srcLen = strLen(src);
 
-    if (src_len != strLen(target)) 
+    //returns FALSE if string lengths do not match
+    if (srcLen != strLen(target)) 
     {
         return FALSE;
     }
 
-    for (int pos = 0; pos < src_len; pos++) 
+    //iterates over src string
+    for (int pos = 0; pos < srcLen; pos++) 
     {
+
+        //if any characters do not match, return FALSE
         if (src[pos] != target[pos])
         {
             return FALSE;
         }
     }
 
+    //retrn TRUE if all characters match as well as length
     return TRUE;
 }
 
-//CHECKS TO SEE IF STRING HAS SUBSTRING
+/*
+    checks to see if a string contains another string:
+        * iterates over a string
+        * checks for characters from substring
+            * if starting character is found, move on to next in substring
+            * otherwise, reset to first character in substring
+*/
 int strContains(char* src, char* substr) 
 {
     int srcIter = 0;
@@ -77,34 +104,47 @@ int strContains(char* src, char* substr)
     char srcCurr = src[0];
     char substrChar = substr[0];
 
+    //while both characters are not NULL
     while (srcCurr && substrChar) 
     {
+        
+        //iterate over src string
         srcCurr = src[srcIter];
 
+        //if characters match
         if (srcCurr == substrChar) 
         {
+            //move to the next character in both strings
             substrIter++;
             substrChar = substr[substrIter];
             srcIter++;
 
         } 
+
+        //if characters do not match
         else 
         {
+
+            //iterates over src only if substr is on the first character
             if (substrIter == 0) 
             {
                 srcIter++;
             }
 
+            //resets substring iterator and substring character
             substrIter = 0;
             substrChar = substr[0];
         }
     
     }
 
+    //when loop broken, if substring character is NULL, this will return TRUE
     return !substrChar;
 }
 
-//RETURNS END SYMBOL POSITION OF SUBSTRING IN STRING
+/*
+    finds a substring in a string and returns the end character position
+*/
 int substrPos(char *src, char *target) 
 {
     int srcIter = 0;
@@ -112,15 +152,18 @@ int substrPos(char *src, char *target)
     char srcChar = src[0];
     char targetChar = target[0];
 
+    //if the string doesn't contain the target string, return -1
     if (!strContains(src, target)) 
     {
         return -1;
     }
 
+    //while src and target characters are not NULL
     while (srcChar && targetChar) 
     {
         srcChar = src[srcIter];
         
+        //if characters match, iterate both strings one position
         if (srcChar == targetChar) 
         {
             targetIter++;
@@ -128,68 +171,99 @@ int substrPos(char *src, char *target)
             srcIter++;
 
         } 
+
+        //if characters don't match
         else 
         {
+
+            //only iterate src on target character being in first position
             if (targetIter == 0) 
             {
                 srcIter++;
             }
 
+            //reset target characters on no match
             targetIter = 0;
             targetChar = target[0];
         }
     }
 
+    //return src iterator as position value
     return srcIter;
 }
 
-//REVERSES A STRING IN PLACE
+/*
+    reverses a string in place
+*/
 void rev_str(char *src) 
 {
     char tmp;
     int len = strLen(src) - 1; //IGNORE NULL TERMINATOR
     int halfLen = len / 2;
 
+    //logic for dealing with odd lengths
     if (len % 2 != 0) 
     {
         halfLen++;
     }
 
+    //iterates up to the halfway point of the string
     for (int pos = 0; pos < halfLen; pos++) 
     {
+
+        //sets temp value and then switches length - position and position charactersin string
         tmp = src[len - pos];
         src[len - pos] = src[pos];
         src[pos] = tmp;
     }
 }
 
-//CREATES A SUBSTRING FROM INDEX START TO END AND STORES IT IN substr
+/*
+    creates a substring from a string:
+        * takes a source string, start index, end index, and substring as inputs
+        * iterates over string from start to end indices and sets corresponding indices in substring
+*/
 void substr(char *src, int start, int end, char *substr) 
 {
-    int iter = 0;
+    int substrPos = 0;
+    int pos;
 
-    for (int pos = start; pos < end; pos++) 
+    //iterates over string from start to end positions
+    for (pos = start; pos < end; pos++) 
     {
-        substr[iter] = src[pos];
-        iter++;
+
+        //sets substring equivalent position to the src character
+        substr[substrPos] = src[pos];
+        substrPos++;
     }
 
-    substr[iter] = '\0';
+    //terminates the string
+    substr[substrPos] = '\0';
 }
 
-//REMOVES ALL NON_SYMBOL CHARACTERS
+/*
+    only retains certain characters in a string:
+        * alphabetical
+        * numerical
+        * '-'
+        * '.'
+*/
 void removeNonSymbols(char *src) 
 {
     int len = strLen(src);
     int tmpPos = 0;
     int pos;
     char sym;
+
+    //create and allocate memory for a temporary storage string
     char *tmp = (char*) calloc(100, sizeof(char));
 
+    //iterates over string
     for (pos = 0; pos < len; pos++) 
     {
         sym = src[pos];
 
+        //if the symbol is alphanumerica or '.' or '-', add it to the temp string
         if ((sym >= 'A' && sym <= 'Z') 
         || (sym >= 'a' && sym <= 'z') 
         || (sym >= '0' && sym <= '9')
@@ -201,12 +275,18 @@ void removeNonSymbols(char *src)
         }
     }
 
+    //terminate temp string and then copy it back into the original src string
     tmp[pos] = '\0';
     strCopy(tmp, src);
+
     free(tmp);
 }
 
-//EVALUATES A SINGLE CHAR TO AN INT
+/*
+    converts a character to an integer:
+        * returns int value if character is numeric
+        * returns -1 if character is not numeric
+*/
 int c2i(char src)
 {
     int num;
@@ -250,7 +330,9 @@ int c2i(char src)
     return num;
 }
 
-//CONVERTS A STRING TO A FLOAT VALUE
+/*
+    converts a string to a float value
+*/
 float s2f(char *src) 
 {
     int iter = 0;
@@ -259,39 +341,54 @@ float s2f(char *src)
     int places = decimalPos - 2; //SUBTRACT 2 IN ORDER TO GET TO ONE BEFORE THE TARGET CHAR
     float num = 0.0f;
 
+    //while current character is not NULL
     while (currChar) 
     {
+        //if the current character is numeric
         if (currChar >= '0' && currChar <= '9') 
         {
+            /*increase num by character int value * 10^places.
+            this works by taking an int and moving it x positions
+            to the left or right.*/
             num += c2i(currChar) * raiseToPower(10, places);
             places--;
         } else if (currChar == '.') {
+            //if the current character is '.', set places to -1
             places = -1;
         }
 
         iter++;
         currChar = src[iter];
-        
     }
 
     return num;
 }
 
-//converts a string into an int value
+/*
+    converts a string to an int value
+*/
 int s2i(char *src) 
 {
     int len = strLen(src);
     int num = 0;
     int currNum;
+
+    //iterates over string
     for (int pos = 0; pos < len; pos++) 
     {
+        //moves current value in num one position to the left
         num *= 10;
+
+        //gets current number from src string
         currNum = c2i(src[pos]);
 
+        //if current number is actually numeric logic
         if (currNum >= 0 && currNum < 10) 
         {
             num += currNum;
         } 
+
+        //return current number if it is not numeric
         else 
         {
             return currNum;
@@ -301,7 +398,10 @@ int s2i(char *src)
     return num;
 }
 
-//CHECKS PROVIDED STRING AGAINST COMPATIBLE SCHEDULER TYPES
+/*
+    checks to see if src string is a supported cpu scheduling type
+    returns TRUE or FALSE
+*/
 int checkCpuSched(char *src) 
 {
     return strCmp(src, "FCFS-N")
@@ -311,7 +411,10 @@ int checkCpuSched(char *src)
     || strCmp(src, "RR-P");
 }
 
-//CHECKS STRING AGAINST COMPATIBLE LOG TO TYPES
+/*
+    checks to see if src is a supported log to type
+    returns TRUE or FALSE
+*/
 int checkLogTo(char *src) 
 {
     return strCmp(src, "Monitor") 
@@ -319,7 +422,9 @@ int checkLogTo(char *src)
     || strCmp(src, "Both");
 }
 
-//SETTS ALL VALUES IN A STRING TO NULL
+/*
+    sets all values in a string to NULL
+*/
 void strClear(char *src) 
 {
     int len = strLen(src);
@@ -330,7 +435,9 @@ void strClear(char *src)
     }
 }
 
-//REMOVES ALL NON-NUMBERS FROM A STRING
+/*
+    removes all non number characters from a string
+*/
 void strRmNonNumbers(char *src) 
 {
     int pos, len, num;
@@ -338,10 +445,14 @@ void strRmNonNumbers(char *src)
     pos = 0;
     len = strLen(src);
 
+    //iterates over string
     for (pos = 0; pos < len; pos++) 
     {
+
+        //converts character to a number
         num = c2i(src[pos]);
 
+        //if number not numeric, moves string one position left
         if (num > 9 || num < 0) 
         {
             src[pos] = src[pos+1];
@@ -349,13 +460,17 @@ void strRmNonNumbers(char *src)
     }
 }
 
-//CHECKS IF A CHARACTER IS A NUMBER
+/*
+    checks to see if character is numeric
+*/
 int charIsNum(char src) 
 {
-    return src >= '0' && src <= 58;
+    return src >= '0' && src <= '9';
 }
 
-//CHECKS IF A CHARACTER IS UPPERCASE
+/*
+    checks to see if character is uppercase
+*/
 int charIsUpper(char src) 
 {
     return src >= 'A' && src <= 'Z';

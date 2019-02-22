@@ -17,7 +17,7 @@ int main(int argc, char const *argv[]) {
     char *fileName = (char*) argv[1];
     struct configValues *settings = (struct configValues*) calloc(1, sizeof(struct configValues));
     struct simAction *actionsHead = (struct simAction*) calloc(1, sizeof(struct simAction));
-    struct logEntry *logList = (struct logEntry*) calloc(1, sizeof(struct logEntry));
+    struct logEvent *logList = (struct logEvent*) calloc(1, sizeof(struct logEvent));
     int cfgVal, mdfVal, verificationVal, simVal;
     bool logToFile = FALSE;
     bool logToMon = FALSE;
@@ -39,6 +39,7 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
+    //freeing file extension memory because it is no longer needed
     free(fileExt);
 
     //STARTING FILE UPLOAD PROCESS
@@ -50,24 +51,30 @@ int main(int argc, char const *argv[]) {
     //ERROR CHECKING FOR CONFIG FILE READING
     if (cfgVal > 0) 
     {
+        //if log to was set before error received
         if (settings->logTo)
         {
+            //create log file if necessary
             if (strCmp(settings->logTo, "Both")
             || strCmp(settings->logTo, "File"))
             {
                 createLogFile(settings->logPath, logList);
             }
         }
+        
+        //displays correct error code and returns 1
         displayError(cfgVal);
         return 1;
     }
 
+    //sets logToFile flag if "Both" or "File" are chosen
     if (strCmp(settings->logTo, "Both")
     || strCmp(settings->logTo, "File"))
     {
         logToFile = TRUE;
     }
     
+    //sets logToMon flag if "Both" or "Monitor" are chosen
     if (strCmp(settings->logTo, "Both")
     || strCmp(settings->logTo, "Monitor"))
     {
@@ -114,33 +121,46 @@ int main(int argc, char const *argv[]) {
 
     printf("Verifying simulator actions...\n\n");
 
+    //verifies simulator actions
     verificationVal = verifySimActions(actionsHead);
 
+    //error checking for verification of sim acitons
     if (verificationVal > 0)
     {
+        
+        //creates log file if necessary
         if (logToFile)
         {
             createLogFile(settings->logPath, logList);
         }
 
+        //displays appropriate error message
         displayError(verificationVal);
     }
 
     printf("Sim actions verified!\n\n");
 
+    //simulates OS/Actions
     simVal = simulate(actionsHead, settings, logList);
 
-    if (simVal) {
-        //TODO: ERRORS???
+    //error checking for sim values, negative values because scheduler returns positives for PCB array positions
+    if (simVal < 0) {
+        
+        if (logToFile)
+        {
+            displayError(simVal);
+        }
+        
+        return 1;
     }
 
+    //if logToFile is set, creates a log file
     if (logToFile)
     {
         createLogFile(settings->logPath, logList);
     }
 
     //FREEING DATA STRUCTS USED TO STORE READ INFORMATION
-    
     freeActions(actionsHead);
     freeLog(logList);
     freeConfigValues(settings);

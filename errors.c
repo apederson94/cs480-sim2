@@ -3,7 +3,9 @@
 
 //CONTAINS ERROR RELATED FUNCTIONS
 
-//CHECKS ERROR AND PRINTS APPROPRIATE MESSAGE TO STDERR
+/*
+    checks error code and prints corresponding error message to stderr
+*/
 void displayError(int err)
 {
     if (err == SA_OP_STRING_ERROR) 
@@ -89,5 +91,33 @@ void displayError(int err)
     else if (err == NON_NUMERIC_STRING_ERROR)
     {
         fprintf(stderr, "ERROR: String supplied to s2i() function contained non-numbers.\n");
+    }
+    else if (err == CONCURRENT_APP_START_ERROR)
+    {
+        fprintf(stderr, "ERROR: Application started while application currently open.\n");
+    }
+    else if (err == APP_END_TIME_ERROR)
+    {
+        fprintf(stderr, "ERROR: Application ended before starting.\n");
+    }
+    else if (err == OS_START_ERROR)
+    {
+        fprintf(stderr, "ERROR: Operating system must start first.\n");
+    }
+    else if (err == OS_END_ERROR)
+    {
+        fprintf(stderr, "ERROR: After operating system stops, no more actiosn can be run.\n");
+    }
+    else if (err == MULTIPLE_OS_START_ERROR)
+    {
+        fprintf(stderr, "ERROR: Operating system may only start once.\n");
+    }
+    else if (err == LOG_OPEN_ERROR)
+    {
+        fprintf(stderr, "ERROR: Unable to open log file.\n");
+    }
+    else if (err == SCHEDULER_NOT_AVAILABLE)
+    {
+        fprintf(stderr, "ERROR: Scheduler type is not currently available.\n");
     }
 }

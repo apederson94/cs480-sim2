@@ -7,37 +7,55 @@
 #include "dataStructures.h"
 #include "booleans.h"
 
-void appendToLog(struct logEntry *logList, char *entry)
+/*
+    appends event to log:
+        * iterates over log until the end
+        * creates a new log entry at the end of the list
+*/
+void appendToLog(struct logEvent *logList, char *entry)
 {
-    struct logEntry *listIter = logList;
+    struct logEvent *logIter = logList;
     int pos = 0;
 
-    while (listIter->next)
+    //iterating over log
+    while (logIter->next)
     {
         pos++;
-        listIter = listIter->next;
+        logIter = logIter->next;
     }
 
-    if (listIter->entry)
+    //if log entry exists already, allocate memory for next and set logIter to the next node in linked list
+    if (logIter->entry)
     {
-        listIter->next = (struct logEntry *) calloc(1, sizeof(struct logEntry));
-        listIter = listIter->next;
+        logIter->next = (struct logEvent *) calloc(1, sizeof(struct logEvent));
+        logIter = logIter->next;
     }
     
-    listIter->entry = (char *) calloc(strLen(entry)+1, sizeof(char));
-    strCopy(entry, listIter->entry);
+    //allocating memory for and setting log entry data
+    logIter->entry = (char *) calloc(strLen(entry)+1, sizeof(char));
+    strCopy(entry, logIter->entry);
 
 }
 
-void createLogHeader(struct logEntry *logList)
+/*
+    creates the log header information
+*/
+void createLogHeader(struct logEvent *logList)
 {
     appendToLog(logList, "==================================================\n");
     appendToLog(logList, "Simulator Log File Header\n");
     appendToLog(logList, "==================================================\n\n");
 }
 
-void appendSettingsToLog(struct logEntry *logList, struct configValues *settings)
+/*
+    appends configValues struct to log:
+        * allocates all temporary storage strings
+        * puts temporary strings into an array for iteration
+        * iterates array and adds values to log
+*/
+void appendSettingsToLog(struct logEvent *logList, struct configValues *settings)
 {
+    //declaring and allocating memory for all relevant vars
     char *version, *program, *cpuSched, *quantum, *memAvail, *cpuCycle, *ioCycle, *logTo, *logPath;
     version = calloc(100, sizeof(char));
     program = calloc(100, sizeof(char));
@@ -51,6 +69,7 @@ void appendSettingsToLog(struct logEntry *logList, struct configValues *settings
     char *all[9] = {version, program, cpuSched, quantum, memAvail, cpuCycle, ioCycle, logTo, logPath};
     int pos;
 
+    //setting the string contents for all temporary storage strings
     sprintf(version, "Version                : %f\n", settings->ver);
     sprintf(program, "Program file name      : %s\n", settings->mdfPath);
     sprintf(cpuSched, "CPU schedule selection : %s\n", settings->cpuSched);
@@ -61,42 +80,65 @@ void appendSettingsToLog(struct logEntry *logList, struct configValues *settings
     sprintf(logTo, "Log to selection       : %s\n", settings->logTo);
     sprintf(logPath, "Log file name          : %s\n\n", settings->logPath);
 
+    //iterating over array of temporary storage strings and appending them to the log
     for (pos = 0; pos < 9; pos++)
     {
         appendToLog(logList, all[pos]);
         free(all[pos]);
     }
 
+    //appends a section to the log to separate it from other sections for easier viewing
     appendToLog(logList, "==================================================\n");
     appendToLog(logList, "==================================================\n\n");
 }
 
-void appendSimActionsToLog(struct logEntry *logList, struct simAction *head)
+
+/* 
+    iterates over simAction struct linked list and appends data to log:
+        * iterates over sim actions
+        * appends all their data to the log
+*/
+void appendSimActionsToLog(struct logEvent *logList, struct simAction *head)
 {
     struct simAction *actionsIter = head;
     char *cmd, *opString, *assocVal;
     
+    //iterating over linked list
     while (actionsIter->next)
     {
+        //allocating memory for each temporary storage string
         cmd = calloc(100, sizeof(char));
         opString = calloc(100, sizeof(char));
         assocVal = calloc(100, sizeof(char));
+
+        //setting each temporary storage string
         sprintf(cmd, "Op code letter: %c\n", actionsIter->commandLetter);
         sprintf(opString, "Op code name  : %s\n", actionsIter->operationString);
         sprintf(assocVal, "Op code value : %d\n\n", actionsIter->assocVal);
-        actionsIter = actionsIter->next;
+
+        //adding each temporary storage string to the log
         appendToLog(logList, cmd);
         appendToLog(logList, opString);
         appendToLog(logList, assocVal);
+
+        actionsIter = actionsIter->next;
     }
 
 }
 
-int createLogFile(char *fileName, struct logEntry *head)
+/*
+    creates a log file using a file name and log linked list:
+        * opens file
+        * iterates over log
+        * prints log events to file
+        * returns 0 on success, error code otherwise
+*/
+int createLogFile(char *fileName, struct logEvent *head)
 {
-    struct logEntry *logIter;
+    struct logEvent *logIter;
     FILE *logFile = fopen(fileName, "w");
 
+    //ensures log file was opened correctly
     if (!logFile)
     {
         return LOG_OPEN_ERROR;
@@ -104,11 +146,17 @@ int createLogFile(char *fileName, struct logEntry *head)
 
     logIter = head;
 
-
+    //iterating over log
     while (logIter->next)
     {
+
+        //if current log event has a valid entry
         if (logIter->entry)
         {
+            /*remove last newline character. too many newlines are printed otherwise.
+            this happens because "%s\n" must be the argument to fprintf because providing
+            just "%s" results in a warning. everything prints fine, but it's better to not
+            have a warning and get the same result.*/
             substr(logIter->entry, 0, strLen(logIter->entry) - 1, logIter->entry);
             fprintf(logFile, "%s\n", logIter->entry);
         }
@@ -116,44 +164,63 @@ int createLogFile(char *fileName, struct logEntry *head)
         logIter = logIter->next;
     }
 
-    fprintf(logFile, "%s\n", logIter->entry);
-
+    //prints the last item in the log to the log file, if it exists
+    if (logIter->entry)
+    {
+        fprintf(logFile, "%s\n", logIter->entry);
+    }
+    
     fclose(logFile);
 
     return 0;
 }
 
-void freeLog(struct logEntry *head)
+/*
+    iterates over log and frees all memory associated with it
+*/
+void freeLog(struct logEvent *head)
 {
-    struct logEntry *tmp;
+    struct logEvent *tmp;
 
+    //iterates linked list
     while (head->next)
     {
         tmp = head;
         head = head->next;
+
+        //frees allocated memory for string and then frees the node in the linked list
         free(tmp->entry);
         free(tmp);
     }
 
+    //frees the last node in the log linked list as well as associated memory
     free(head->entry);
     free(head);
 
 }
 
-void printLog(struct logEntry *logList)
+/*
+    prints all of the info contained in the log
+*/
+void printLog(struct logEvent *logList)
 {
-    struct logEntry *entry = logList;
+    struct logEvent *entry = logList;
 
+    //iterates over log and pritns entrys in log list
     while (entry->next)
     {
         printf("%s\n", entry->entry);
     }
 
+    //prints last entry in log
     printf("%s\n", entry->entry);
 
 }
 
-void logIt(char *line, struct logEntry *logList, bool logToMon, bool logToFile)
+/*
+    handles all logic dealing with logging to monitor and logging to file
+*/
+void logIt(char *line, struct logEvent *logList, bool logToMon, bool logToFile)
 {
     if (logToMon)
     {
